@@ -70,7 +70,7 @@ def message(message):
                 times = times2.split(':') + times
                 times = '_'.join(times)
                 global path
-                path = 'D:/python_photos/'
+                path = r'C:\work\faceid\python_photos'
                 global fpath
                 fpath = f'{str(times)}.jpg'
                 cv2.imwrite(os.path.join(path, fpath), img)
