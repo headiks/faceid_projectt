@@ -7,6 +7,8 @@ import serial
 import telebot
 from keyboa import Keyboa
 
+import photoredaktor
+
 bot = telebot.TeleBot('5180282626:AAEDq-6h8OxZkX55tbPkMvgMPMX91AMAajc')
 ser = serial.Serial('COM11', baudrate=9600, timeout=1)
 ser.flush()
@@ -30,9 +32,8 @@ class date(BaseModel):
         table_name = 'photodata'
 
 
-@bot.message_handler(content_types=['text', 'document', 'photo'])
+@bot.message_handler(content_types=['text'])
 def message(message):
-    print(message.chat.id)
     faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     cap.set(3, 800)  # set Width
@@ -70,7 +71,7 @@ def message(message):
                 times = times2.split(':') + times
                 times = '_'.join(times)
                 global path
-                path = r'C:\work\faceid\python_photos'
+                path = r'C:\\work\\faceid\\python_photos\\'
                 global fpath
                 fpath = f'{str(times)}.jpg'
                 cv2.imwrite(os.path.join(path, fpath), img)
@@ -78,18 +79,36 @@ def message(message):
         if facephoto == 1:
             bot.send_photo(chat_id=udid, photo=open(path + fpath, 'rb'))
             bot.send_message(chat_id=udid, reply_markup=doorkb, text="Открыть дверь?")
-            print(path + fpath)
             date.create(
                 artist_id=f'{time.gmtime(1575721830).tm_year}-{time.gmtime(1575721830).tm_mon}-{time.gmtime(1575721830).tm_mday}',
                 name=f'{path + fpath}')
             facephoto = 0
         cv2.imshow('video', img)
-        if message.text == 'обработка':
-            try:
-                photo_id = message.photo[-1].file_id
-                bot.send_message(message.chat.id, 'получил фото')
-            except:
-                bot.send_message(message.chat.id, 'получил что угодно, но определенно не фото')
+
+
+@bot.message_handler(content_types=['photo', 'document'])
+def handler_file(message):
+    from pathlib import Path
+    Path(f'files/{message.chat.id}/').mkdir(parents=True, exist_ok=True)
+    if message.content_type == 'photo':
+        file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        global src
+        src = r'C:\\work\\faceid\\obrabotka\\' + file_info.file_path.replace('photos/', '')
+        with open(src, 'wb') as new_file:
+            new_file.write(downloaded_file)
+            style = [
+                {"сепия": "5"}, {"Чёрно-белый": "6"}, {"резкость": "7"}, {"контур": "8"}, {"негатив": "9"}]
+            stylekb = Keyboa(items=style).keyboard
+            bot.send_message(chat_id=message.chat.id, reply_markup=stylekb, text="Выберите стиль")
+
+    elif message.content_type == 'document':
+        file_info = bot.get_file(message.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        src1 = r'C:\\work\\faceid\\obrabotka\\' + message.document.file_name
+        with open(src1, 'wb') as new_file:
+            new_file.write(downloaded_file)
+            bot.send_message(chat_id=udid, text="Резервная копия сделана на ваш пк")
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -102,6 +121,26 @@ def query_handler(call):
         senddata(3)
     elif call.data == '4':
         senddata(4)
+    elif call.data == '5':
+        print(src)
+        a = photoredaktor.photo_import(src, 5)
+        sendphoto(a)
+    elif call.data == '6':
+        a = photoredaktor.photo_import(src, 2)
+        sendphoto(a)
+    elif call.data == '7':
+        a = photoredaktor.photo_import(src, 3)
+        sendphoto(a)
+    elif call.data == '8':
+        a = photoredaktor.photo_import(src, 4)
+        sendphoto(a)
+    elif call.data == '9':
+        a = photoredaktor.photo_import(src, 1)
+        sendphoto(a)
+
+def sendphoto(filename):
+    bot.send_photo(chat_id=udid, photo=open(filename, 'rb'))
+    bot.send_message(chat_id=udid, text='Фото обработано')
 
 
 def senddata(number):
