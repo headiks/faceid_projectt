@@ -1,0 +1,2 @@
+libraries:
+io,peewee,cv2,serial,telebot,keyboa, PIL
