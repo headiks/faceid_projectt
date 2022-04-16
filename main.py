@@ -6,8 +6,10 @@ import cv2
 import serial
 import telebot
 from keyboa import Keyboa
-
 import photoredaktor
+import random
+import requests
+import pokepy
 
 bot = telebot.TeleBot('5180282626:AAEDq-6h8OxZkX55tbPkMvgMPMX91AMAajc')
 ser = serial.Serial('COM11', baudrate=9600, timeout=1)
@@ -41,7 +43,7 @@ def message(message):
     pasttime = 0
     facephoto = 0
     buttonswithids = [
-        {"вывести данные": "1"}]
+        {"вывести данные по тем-ре и влажности в комнате": "1"}, {'Погода в Твери в данный момент': '2'}]
     global kb
     kb = Keyboa(items=buttonswithids).keyboard
     door = [
@@ -116,7 +118,7 @@ def query_handler(call):
     if call.data == '1':
         senddata(1)
     elif call.data == '2':
-        senddata(2)
+        weather()
     elif call.data == '3':
         senddata(3)
     elif call.data == '4':
@@ -138,9 +140,32 @@ def query_handler(call):
         a = photoredaktor.photo_import(src, 1)
         sendphoto(a)
 
+
 def sendphoto(filename):
     bot.send_photo(chat_id=udid, photo=open(filename, 'rb'))
     bot.send_message(chat_id=udid, text='Фото обработано')
+
+
+def weather():
+    city_id = 480060
+    appid = "59b482e7a9ec6738ccd80ddf551b0c55"
+    try:
+        res = requests.get("http://api.openweathermap.org/data/2.5/weather",
+                           params={'id': city_id, 'units': 'metric', 'lang': 'ru', 'APPID': appid})
+        data = res.json()
+        print("conditions:", data['weather'][0]['description'])
+        print("temp:", data['main']['temp'])
+        print("temp_min:", data['main']['temp_min'])
+        print("temp_max:", data['main']['temp_max'])
+        bot.send_message(chat_id=udid, text=f'''
+Температура В Твери = {data['main']['temp']}
+Минимальная температура Твери   = {data['main']['temp_min']}
+Максимальная температура Твери   = {data['main']['temp_max']}
+Погодные условия  = {data['weather'][0]['description']}
+        ''')
+    except Exception as e:
+        print("Exception (weather):", e)
+        pass
 
 
 def senddata(number):
@@ -148,8 +173,8 @@ def senddata(number):
         ser.write(b'1')
         line = ser.readline().decode('ASCII').split('-')
         bot.send_message(chat_id=udid, text=f'''
-    Температура = {line[0]}
-    Влажность   = {line[1]}
+Температура в комнате = {line[0]}
+Влажность в комнате  = {line[1]}
     ''')
     elif number == 2:
         raise SystemExit
