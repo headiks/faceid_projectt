@@ -1,15 +1,15 @@
 import io
 import os
 import time
-from peewee import *
+
 import cv2
+import requests
 import serial
 import telebot
 from keyboa import Keyboa
+from peewee import *
+
 import photoredaktor
-import random
-import requests
-import pokepy
 
 bot = telebot.TeleBot('5180282626:AAEDq-6h8OxZkX55tbPkMvgMPMX91AMAajc')
 ser = serial.Serial('COM11', baudrate=9600, timeout=1)
@@ -56,9 +56,9 @@ def message(message):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces = faceCascade.detectMultiScale(
             gray,
-            scaleFactor=1.2,
+            scaleFactor=1.1,
             minNeighbors=5,
-            minSize=(20, 20)
+            minSize=(30, 30)
         )
         for (x, y, w, h) in faces:
             cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
