@@ -21,6 +21,7 @@ iarduino_RTC watch(RTC_DS3231);
 #define ECHO_PIN     12
 #define MAX_DISTANCE 400
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
 int sw = 1 ;
 int tl, i;
 int tm, adb;
@@ -39,14 +40,18 @@ int temp, hum, chk;
 int timess;
 int axy, guy, distguy, svetok;
 int svett;
+
 byte bukva_ZH[8]  = {B10101, B10101, B10101, B11111, B10101, B10101, B10101, B00000,}; // Буква "Ж"
 byte bukva_N[8]   = {B10001, B10001, B10001, B11111, B10001, B10001, B10001, B00000,}; // Буква "Н"
 byte bukva_L[8]   = {B00011, B00111, B00101, B00101, B01101, B01001, B11001, B00000,}; // Буква "Л"
 byte bukva_P[8]   = {B11111, B10001, B10001, B10001, B10001, B10001, B10001, B00000,}; // Буква "П"
 byte bukva_Mz[8]  = {B10000, B10000, B10000, B11110, B10001, B10001, B11110, B00000,}; // Буква "Ь"
 byte bukva_t[8]   = {B00000, B00000, B11111, B10101, B00100, B00100, B00100, B00000,}; // Буква "т"
+
 #define PIN_LED 7
+
 void setup() {
+  
   pinMode(A0, INPUT);
   pinMode(5, INPUT_PULLUP);
   pinMode(6, INPUT_PULLUP);
@@ -72,9 +77,13 @@ void setup() {
   servos[0].setAccel(0);
   servos[0].setSpeed(800);
   watch.settime(50 , 59, 13, 21, 8, 2021, 5);
+  
 }
-void loop() {
-  switch (sw) {
+
+void loop() 
+{
+  switch (sw)
+  {
     case 1:
       temp = DHT.temperature;  // Читаем температуру
       hum = DHT.humidity;
@@ -188,7 +197,8 @@ void loop() {
       }
       break;
   }
-  switch (xv) {
+  switch (xv)
+  {
     case 0:
       chk = DHT.read(DHT11_PIN);
       temp = DHT.temperature;  // Читаем температуру
@@ -215,7 +225,8 @@ void loop() {
       }
       break;
   }
-  switch (guy) {
+  switch (guy)
+  {
     case  0:
       servos[0].tick();
       servos[0].setTargetDeg(179);
@@ -231,7 +242,8 @@ void loop() {
       } else timess = millis();
       break;
   }
-  switch (svetok) {
+  switch (svetok)
+  {
     case  0:
       analogWrite(PIN_LED, LOW);
       svett = analogRead(A0);
@@ -242,7 +254,8 @@ void loop() {
     case  1:
       svett = analogRead(A0);
         digitalWrite(PIN_LED, HIGH);
-      if (svett > 100) {
+      if (svett > 100)
+      {
         svetok = 0;
       }
       break;
